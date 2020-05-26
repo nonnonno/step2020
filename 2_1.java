@@ -1,3 +1,8 @@
+//javac 2_1.java
+//「javac ファイル名」　でコンパイル
+//java Matrix [Nの値]
+//「jaca class名　行列の大きさ」で実行　
+
 class Matrix {
   public static void main(String args[])
   {
