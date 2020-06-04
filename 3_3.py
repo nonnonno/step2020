@@ -1,4 +1,5 @@
 #indexを介して中身を返す関数nakamiを使って、3_1.pyをモジュール化できた
+#kakko_naka_keisanを利用して、test関数と、最後のwhile文の中の計算をモジュール化した
 
 def readNumber(line, index):
   number = 0
@@ -69,33 +70,41 @@ def tokenize(line):
 def multi_div(tokens):#掛け算と割り算を演算
     index = 0
     nikome = ''
-    while index+2 < len(tokens):
-        if tokens[index+1]['type'] != 'DIVIDE' and tokens[index+1]['type'] != 'MULTIPLE':#次が積や商でなければ
-            nikome+=nakami(tokens[index])
-            index+=1#indexを1つ進める
-            #和積を計算するための配列であるnikomeに追加
+    while index < len(tokens):
+        if len(tokens) == index+1:
+          nikome+=nakami(tokens[index])
+          break
+        if tokens[index+1]['type'] != 'DIVIDE' and tokens[index+1]['type'] != 'MULTIPLE' :#次が積や商でなければ
+          nikome+=nakami(tokens[index])
+          index+=1#indexを1つ進める
+          #和積を計算するための配列であるnikomeに追加
         else:
-            if tokens[index]['type'] == 'NUMBER' and tokens[index+2]['type'] == 'NUMBER':#次が積や商で数字なら
-                if tokens[index + 1]['type'] == 'MULTIPLE':#積なら
-                    multi = tokens[index]['number'] * tokens[index+2]['number']
-                    nikome+=str(multi)#掛け算
-                    index+=3#indexを3余分に進める
-                else: # tokens[index + 1]['type'] == 'DIVIDE':#商なら
-                    divide = tokens[index]['number'] / tokens[index+2]['number']
-                    nikome+=str(divide)#割り算
-                    index+=3#indexを3余分に進める
-
-            else:#積商の前後が数字じゃない例外なら
+            if tokens[index]['type'] == 'NUMBER' and tokens[index+2]['type'] == 'NUMBER':#両脇が数字なら
+              if tokens[index+1]['type'] == 'MULTIPLE':#積
+                kekka = tokens[index]['number'] * tokens[index+2]['number']
+              elif tokens[index+1]['type'] == 'DIVIDE':#商
+                kekka = tokens[index]['number'] / tokens[index+2]['number']
+              else: 
                 print('Invalid syntax_multi_div')
-                exit(1)            
-
-    if index+1<=len(tokens):#最後から二文字目は和積記号、最後の１文字は数字
-        nikome+=nakami(tokens[index])   
-        nikome+=str(tokens[index+1]['number'])#最後の１文字の数字を文字列にしてnikomeに追加
+                exit(1)
+            else :
+              print('Invalid syntax_multi_div')
+              exit(1)
+            #以上、まずは積商の計算
+            if index+3<len(tokens) :#まだ次に調べるべき演算がある
+              if tokens[index+3]['type'] == 'MULTIPLE' or tokens[index+3]['type'] == 'DIVIDE':#次が積商
+                tokens[index+2]['number'] = kekka#積商の結果を次の演算のひとつ前に格納
+                index+=2
+              else : #次が積商以外
+                nikome+=str(kekka)
+                index+=3
+            else :#もう調べる演算ない＝式の中で最後の和積
+              nikome+=str(kekka)
+              return nikome
     return nikome
 
 
-def evaluate(tokens):
+def evaluate(tokens):#和積の計算
   answer = 0
   tokens.insert(0, {'type': 'PLUS'}) # Insert a dummy '+' token
   index = 1
@@ -172,17 +181,12 @@ def kakko_find(tokens):
         zentai = kakko_find(tokenize(zentai))#zentaiにまだ括弧があるので再帰
     
     return zentai 
-    
-        
-             
+                
 
 def test(line):
   tokens = tokenize(line)
   kakko_nasi = kakko_find(tokens)
-  kakko_nasi2 = tokenize(kakko_nasi)
-  secondtokens = multi_div(kakko_nasi2)
-  tokens2 = tokenize(secondtokens)
-  actualAnswer = evaluate(tokens2)
+  actualAnswer = float(kakko_naka_keisan(kakko_nasi)) 
   expectedAnswer = eval(line)
   if abs(actualAnswer - expectedAnswer) < 1e-8:
     print("PASS! (%s = %f)" % (line, expectedAnswer))
@@ -197,6 +201,7 @@ def runTest():
   test("1.0+2.1-3")
   test("2*5")#シンプルな積
   test("3*5+4*6")#積が複数
+  test("8/2/2")#和積が連続する
   test("4/2+2/4")#小数含み
   test("3*4+2/4+5*6")#積商複数
   test("2+4*5-6+3/2")#四則演算すべて含む
@@ -212,8 +217,5 @@ while True:
   line = input()
   tokens = tokenize(line)
   kakko_nasi = kakko_find(tokens)
-  kakko_nasi2 = tokenize(kakko_nasi)
-  secondtokens = multi_div(kakko_nasi2)
-  tokens2 = tokenize(secondtokens)
-  answer = evaluate(tokens2)
+  answer = float(kakko_naka_keisan(kakko_nasi))
   print("answer = %f\n" % answer)
