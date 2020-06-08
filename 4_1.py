@@ -88,19 +88,19 @@ def bfs(source,dest,data_lst):
     depth = 0
     index = 0
     parent_lst = []
-    tmp_lst = []
-    parent_lst.append(source)
+    tmp_lst = []#次に親になる層のノードを一時保管
+    parent_lst.append(source)#sourceで初期化
     parent_lst_len = 0
-    while depth < max_depth:
+    while depth < max_depth:#せいぜいノードの種類分の回数探索すればよい
         parent_lst_len = len(parent_lst)
-        while index < parent_lst_len:
-            if child_search(parent_lst[index],dest,data_lst):
-                print("count:",+depth)
+        while index < parent_lst_len:#親になる層のノードの個数回探索
+            if child_search(parent_lst[index],dest,data_lst):#それぞれの親ノードについてchild_searchを呼び出す
+                print("count:",+depth)#何人で辿れたかを表示
                 return True
             tmp_lst+=child(parent_lst[index],data_lst)
             index+=1
         parent_lst = [] #リストを世代交代させる
-        parent_lst+=tmp_lst
+        parent_lst+=tmp_lst#tmp_lstに取っておいたリストをparent_lstに移す
         tmp_lst = []
         depth+=1
         index = 0
